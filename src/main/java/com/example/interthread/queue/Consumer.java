@@ -21,8 +21,7 @@ public class Consumer implements Runnable {
     public void run() {
         for (int i=0; i<nrEvents; i++) {
             try {
-                LongEvent event = queue.take();
-                System.out.println("Consumed event with sequence " + event.getValue());
+                queue.take();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

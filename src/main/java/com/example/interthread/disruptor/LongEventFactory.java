@@ -1,4 +1,4 @@
-package com.example.interthread.lmax;
+package com.example.interthread.disruptor;
 
 import com.example.interthread.LongEvent;
 import com.lmax.disruptor.EventFactory;

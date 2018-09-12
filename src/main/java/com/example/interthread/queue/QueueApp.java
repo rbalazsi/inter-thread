@@ -8,16 +8,13 @@ import java.util.concurrent.CountDownLatch;
 
 public class QueueApp {
 
-    private static final int BUFFER_SIZE = 1024 * 1024;
-//    private static final long NR_EVENTS = 500_000_000;
-private static final long NR_EVENTS = 500_000_000;
+    private static final int BUFFER_SIZE = 1024;
+    private static final long NR_EVENTS = 50_000_000;
 
     public static void main(String[] args) throws InterruptedException {
         BlockingQueue<LongEvent> eventQueue = new ArrayBlockingQueue<>(BUFFER_SIZE);
         CountDownLatch latch = new CountDownLatch(1);
-//        Producer producer = new Producer(eventQueue, NR_EVENTS, latch);
         Consumer consumer = new Consumer(eventQueue, NR_EVENTS, latch);
-//        new Thread(producer).start();
         new Thread(consumer).start();
 
         long start = System.nanoTime();

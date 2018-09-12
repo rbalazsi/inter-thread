@@ -25,45 +25,76 @@ public class QueueBenchmark {
     private static final int BUFFER_SIZE = 1024 * 1024;
 
     @State(Scope.Benchmark)
-    public static class QueueBenchmarkState {
+    public static class QueueAverageTimeBenchmarkState {
 
-        @Param(value = {/*"1000", */"10000"/*, "100000", "10000000", "50000000", "500000000"*/})
+        @Param(value = {"1000", "10000", "100000", "10000000", "50000000", "500000000"})
         long nrEvents;
 
-        private CountDownLatch latch;
-        private BlockingQueue<LongEvent> queue;
+        CountDownLatch latch;
+        BlockingQueue<LongEvent> queue;
 
-        @Setup(Level.Trial)
+        @Setup(Level.Invocation)
         public void setUp() {
-            System.out.println("Scenario set up.");
             queue = new ArrayBlockingQueue<>(BUFFER_SIZE);
             latch = new CountDownLatch(1);
             new Thread(new Consumer(queue, nrEvents, latch)).start();
         }
 
-        @TearDown(Level.Trial)
+        @TearDown(Level.Invocation)
         public void tearDown() {
+            queue.clear();
+        }
+    }
+
+    @State(Scope.Benchmark)
+    public static class QueueThroughputBenchmarkState {
+
+        CountDownLatch latch;
+        BlockingQueue<LongEvent> queue;
+
+        @Setup(Level.Invocation)
+        public void setUp() {
+            queue = new ArrayBlockingQueue<>(BUFFER_SIZE);
+            latch = new CountDownLatch(1);
+            new Thread(new Consumer(queue, 1, latch)).start();
+        }
+
+        @TearDown(Level.Invocation)
+        public void tearDown() {
+            queue.clear();
         }
     }
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    @Warmup(iterations = 1)
-    @Measurement(iterations = 5)
+    @Warmup(iterations = 1, time = 2000, timeUnit = TimeUnit.MILLISECONDS)
+    @Measurement(iterations = 5, time = 2000, timeUnit = TimeUnit.MILLISECONDS)
     @Fork(value = 1)
-    public void queueAverageTime(QueueBenchmarkState state) throws InterruptedException {
-        System.out.println("Scenario started.");
+    public void queueAverageTime(QueueAverageTimeBenchmarkState state) throws InterruptedException {
         for (int i=0; i<state.nrEvents; i++) {
             LongEvent event = new LongEvent();
             event.setValue(i);
             try {
                 state.queue.put(event);
-                System.out.println("Event produced with sequence " + i);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+
+        state.latch.await();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.MILLISECONDS)
+    @Warmup(iterations = 5, time = 2000, timeUnit = TimeUnit.MILLISECONDS)
+    @Measurement(iterations = 5, time = 2000, timeUnit = TimeUnit.MILLISECONDS)
+    @Fork(value = 1)
+    public void queueThroughput(QueueThroughputBenchmarkState state) throws InterruptedException {
+        LongEvent event = new LongEvent();
+        event.setValue(7);
+        state.queue.put(event);
 
         state.latch.await();
     }

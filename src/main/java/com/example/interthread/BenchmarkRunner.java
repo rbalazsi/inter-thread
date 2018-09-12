@@ -9,9 +9,7 @@ public class BenchmarkRunner {
 
     public static void main(String[] args) throws RunnerException {
         Options options = new OptionsBuilder()
-//                .include("com.example.interthread.*")
-                .include("com.example.interthread.queue.QueueBenchmark")
-//                .include("com.example.interthread.lmax.LMAXBenchmark")
+                .include("com.example.interthread.*")
                 .forks(1)
                 .build();
 

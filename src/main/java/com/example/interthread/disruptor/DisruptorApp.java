@@ -1,21 +1,20 @@
-package com.example.interthread.lmax;
+package com.example.interthread.disruptor;
 
 import com.example.interthread.LongEvent;
 import com.example.interthread.NamedThreadFactory;
-import com.example.interthread.lmax.LongEventFactory;
 import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.EventTranslatorOneArg;
+import com.lmax.disruptor.EventTranslator;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 
 import java.nio.ByteBuffer;
 
-public class LMAXApp {
+public class DisruptorApp {
 
     private static final int BUFFER_SIZE = 1024;
-    private static final long NR_EVENTS = 500_000_000;
+    private static final long NR_EVENTS = 50_000_000;
 
     public static void main(String[] args) {
         LongEventFactory eventFactory = new LongEventFactory();
@@ -45,14 +44,14 @@ public class LMAXApp {
             byteBuffer.putLong(0, num);
 
             // Publish events by the Producer
-            ringBuffer.publishEvent(new EventTranslatorOneArg<LongEvent, ByteBuffer>() {
+            ringBuffer.publishEvent(new EventTranslator<LongEvent>() {
 
                 @Override
-                public void translateTo(LongEvent event, long sequence, ByteBuffer bb) {
+                public void translateTo(LongEvent event, long sequence) {
                     event.setValue(byteBuffer.getLong(0));
                 }
 
-            }, byteBuffer);
+            });
         }
 
         System.out.println("Elapsed time: " + ((double)(System.nanoTime()) - (double)start) / 1000000 + " ms");
